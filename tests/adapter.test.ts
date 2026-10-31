@@ -457,3 +457,28 @@ test("global project discovery preserves its verified location scope and rejects
     }
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test("a turn deadline aborts its own inspection, never the plugin event stream", async () => {
+  const root = await mkdtemp(join(process.env.TMPDIR!, "optchat-deadline-scope-")), database = join(root, "memory.sqlite");
+  const hooks: Record<string, (event: any) => Promise<void>> = {}; let streamSignal: AbortSignal | undefined;
+  const ctx: any = {
+    app: { version: "2.0.26" }, location: { directory: root, project: { id: "stable", canonical: root } },
+    options: { database, scopeId: "deadline", fakeSummarizer: true, waitMs: 200 },
+    session: {
+      hook: async (name: string, fn: any) => { hooks[name] = fn; },
+      get: async () => ({ projectID: "stable", location: { directory: root }, permissions: [] }),
+      context: async () => { await Bun.sleep(600); return [{ id: "current", type: "user", time: { created: 1 }, text: "CURRENT" }]; },
+    },
+    agent: { get: async () => ({ data: { permissions: [] } }) }, model: { list: async () => ({ data: [{ providerID: "fixture", id: "fixture", limit: { context: 32000, output: 1024 } }] }) },
+    tool: { transform: async (fn: any) => fn({ add() {} }) },
+    event: { subscribe: async function* (options: any) { streamSignal = options.signal; yield* []; } },
+  };
+  const cleanup = await plugin.setup(ctx) as (() => Promise<void>) | undefined;
+  try {
+    const request = { sessionID: "deadline-session", agent: "build", model: { providerID: "fixture", id: "fixture" }, options: {}, system: [], tools: { native_echo: {} }, messages: [{ id: "current", role: "user", content: "CURRENT" }] };
+    await hooks.context!(request);
+    expect(streamSignal).toBeDefined();
+    expect(streamSignal!.aborted).toBe(false);
+    expect(JSON.stringify(request.system)).toContain("unavailable for this entire turn");
+  } finally { await cleanup?.(); await rm(root, { recursive: true, force: true }); }
+}, 20000);

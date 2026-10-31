@@ -296,7 +296,9 @@ A blocked database keeps the Location in native mode without memory tools.
 
 ## Limits
 
-- The conservative counter uses UTF-8 bytes of serialized content as an upper token estimate.
+- The conservative counter estimates tokens by character class.
+  It counts about 3.2 ASCII characters per token and 1.5 tokens per non-ASCII character.
+  A run without a separator that exceeds 32 characters counts two characters per token.
   It can stop a request too early.
 - The counter does not tokenize provider-specific request wrappers exactly.
   The safety reserve remains necessary.

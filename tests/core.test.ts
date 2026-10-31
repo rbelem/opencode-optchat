@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { Engine, Store, Retrieval, MemoryError, ModelSummarizer, FakeSummarizer, assembleContext, bytes, key, sessionTree, sourceKey, type SourceInput, type Publication, type Node, type Summarizer, type Summary } from "../src/index.ts";
+import { conservativeTokens } from "../src/core/context.ts";
 import { rangeCover, validateCover } from "../src/core/tree.ts";
 import { mergeView, project, renderNode, renderedBytes } from "../src/core/views.ts";
 import { chunks } from "../src/compactor/summarizer.ts";
@@ -221,7 +222,21 @@ describe("frontiers and budgets", () => {
     const result = assembleContext(e, { system: [{ text: "HOST" }], tools: { tool: { description: "native" } }, live, snapshot, budget: { contextTokens: 5000, outputTokens: 1000, safetyTokens: 256, memoryBytes: 1000 } });
     expect(result.messages).toBe(live); expect(result.memory).not.toContain("CURRENT_USER");
     expect(result.tokenUpperBound).toBeLessThanOrEqual(3744);
-    expect(() => assembleContext(e, { system: ["x".repeat(6000)], tools: {}, live, snapshot, budget: { contextTokens: 5000, outputTokens: 1000, safetyTokens: 256, memoryBytes: 1000 } })).toThrow("ACTIVE_TURN_TOO_LARGE");
+    expect(() => assembleContext(e, { system: ["x".repeat(20000)], tools: {}, live, snapshot, budget: { contextTokens: 5000, outputTokens: 1000, safetyTokens: 256, memoryBytes: 1000 } })).toThrow("ACTIVE_TURN_TOO_LARGE");
+  });
+  test("token estimate keeps most of the window usable and still rejects an oversized request", async () => {
+    const e = make(); register(e, "a"); const snapshot = e.admit("a", "t").snapshot;
+    const budget = { contextTokens: 200000, outputTokens: 8000, safetyTokens: 2048, memoryBytes: 0 };
+    const result = assembleContext(e, { system: [], tools: {}, live: [{ role: "user", text: "x".repeat(300000) }], snapshot, budget });
+    expect(result.tokenUpperBound).toBeGreaterThan(80000);
+    expect(result.tokenUpperBound).toBeLessThan(189952);
+    expect(() => assembleContext(e, { system: [], tools: {}, live: [{ role: "user", text: "x".repeat(700000) }], snapshot, budget })).toThrow("ACTIVE_TURN_TOO_LARGE");
+  });
+  test("a non-ASCII character costs more than an ASCII character", () => {
+    expect(conservativeTokens("漢".repeat(1000))).toBeGreaterThan(conservativeTokens("x".repeat(1000)));
+  });
+  test("a dense run costs more than the same characters separated by spaces", () => {
+    expect(conservativeTokens("abcd ".repeat(100))).toBeLessThan(conservativeTokens("abcd".repeat(100)));
   });
 });
 describe("snapshot isolation, search and retrieval", () => {

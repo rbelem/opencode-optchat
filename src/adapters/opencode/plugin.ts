@@ -443,14 +443,17 @@ const memory = Plugin.define({ id: "optchat.memory", async setup(ctx) {
   };
   await ctx.session.hook("context", async event => {
     diagnostics.emit("primary.received", { sessionId: event.sessionID });
-    const controller = new AbortController();
-    // Primary admission never starts or awaits summary generation.
-    const timer = setTimeout(() => controller.abort(new MemoryError("MEMORY_NOT_READY", "Memory inspection reached its deadline")), Math.min(waitMs, 1000));
     const previousSession = store.get<Session>("sessions", event.sessionID), previousJournal = store.get<Journal>("adapter", event.sessionID);
+    let userId = [...event.messages].reverse().find(m => m.role === "user" && m.id)?.id;
     let pinned = previousSession && previousJournal?.activeId && event.messages.some(m => m.id === previousJournal.activeId)
       ? store.get<Turn>("turns", key(event.sessionID, previousSession.generation, previousJournal.activeId)) : undefined;
     if (pinned?.outcome) pinned = undefined;
-    let userId = [...event.messages].reverse().find(m => m.role === "user" && m.id)?.id;
+    // A recorded active turn for this message is pinned even when the transcript check misses it.
+    const pinnedForDeadline = !!pinned || previousJournal?.activeId === userId;
+    // Primary admission never starts or awaits summary generation.
+    // A pinned turn cannot fall back to native mode, so it waits behind background work instead of timing out.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(new MemoryError("MEMORY_NOT_READY", "Memory inspection reached its deadline")), pinnedForDeadline ? waitMs : Math.min(waitMs, 1000));
     const native = (error?: unknown) => {
       const code = error instanceof MemoryError ? error.code : "HOST_UNAVAILABLE";
       store.set("nativeActive", event.sessionID, { userId, reason: code });

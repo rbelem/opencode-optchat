@@ -1471,7 +1471,36 @@ class Retrieval {
   }
 }
 // src/core/context.ts
-var conservativeTokens = (value) => bytes(JSON.stringify(value));
+var asciiCharsPerToken = 3.2;
+var denseCharsPerToken = 2;
+var nonAsciiTokensPerChar = 1.5;
+var denseRunMin = 32;
+var separators = new Set([32, 9, 10, 13, 34, 39, 44, 58, 123, 125, 91, 93]);
+var conservativeTokens = (value) => {
+  const text = JSON.stringify(value) ?? "";
+  let readable = 0, dense = 0, nonAscii = 0, run = 0;
+  const flush = () => {
+    if (run)
+      run > denseRunMin ? dense += run : readable += run;
+    run = 0;
+  };
+  for (const char of text) {
+    const code = char.codePointAt(0);
+    if (code >= 128) {
+      flush();
+      nonAscii++;
+      continue;
+    }
+    if (separators.has(code)) {
+      flush();
+      readable++;
+      continue;
+    }
+    run++;
+  }
+  flush();
+  return Math.ceil(readable / asciiCharsPerToken) + Math.ceil(dense / denseCharsPerToken) + Math.ceil(nonAscii * nonAsciiTokensPerChar);
+};
 function assembleContext(engine, input) {
   engine.validateSnapshot(input.snapshot);
   const { contextTokens, outputTokens, safetyTokens, memoryBytes } = input.budget;
@@ -2784,13 +2813,14 @@ var memory = Plugin.define({ id: "optchat.memory", async setup(ctx) {
   };
   await ctx.session.hook("context", async (event) => {
     diagnostics.emit("primary.received", { sessionId: event.sessionID });
-    const controller = new AbortController;
-    const timer = setTimeout(() => controller.abort(new MemoryError("MEMORY_NOT_READY", "Memory inspection reached its deadline")), Math.min(waitMs, 1000));
     const previousSession = store.get("sessions", event.sessionID), previousJournal = store.get("adapter", event.sessionID);
+    let userId = [...event.messages].reverse().find((m) => m.role === "user" && m.id)?.id;
     let pinned = previousSession && previousJournal?.activeId && event.messages.some((m) => m.id === previousJournal.activeId) ? store.get("turns", key(event.sessionID, previousSession.generation, previousJournal.activeId)) : undefined;
     if (pinned?.outcome)
       pinned = undefined;
-    let userId = [...event.messages].reverse().find((m) => m.role === "user" && m.id)?.id;
+    const pinnedForDeadline = !!pinned || previousJournal?.activeId === userId;
+    const controller = new AbortController;
+    const timer = setTimeout(() => controller.abort(new MemoryError("MEMORY_NOT_READY", "Memory inspection reached its deadline")), pinnedForDeadline ? waitMs : Math.min(waitMs, 1000));
     const native = (error) => {
       const code = error instanceof MemoryError ? error.code : "HOST_UNAVAILABLE";
       store.set("nativeActive", event.sessionID, { userId, reason: code });
@@ -2987,4 +3017,4 @@ export {
   plugin_default as default
 };
 
-//# debugId=5B3989834205015764756E2164756E21
+//# debugId=B1C644B58D85168B64756E2164756E21
