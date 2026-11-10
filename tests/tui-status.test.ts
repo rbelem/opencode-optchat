@@ -65,6 +65,54 @@ describe("terminal memory status", () => {
       expect(statusIndicator(memoryStatus(path, true)).text).toBe("OC:M 2/3?m · 0j");
     } finally { store.close(); rmSync(root, { recursive: true, force: true }); }
   });
+  test("uses a shorter format on narrow terminals", () => {
+    const status = ready();
+    status.totalMessages = 325;
+    status.processedMessages = 325;
+    status.inventoryComplete = true;
+    expect(statusIndicator(status).text).toBe("OC:M 325/325m · 0j");
+    expect(statusIndicator(status, 80).text).toBe("OC:M 325/325m · 0j");
+    expect(statusIndicator(status, 79).text).toBe("OC:M 325/325");
+    expect(statusIndicator(status, 79).text.length).toBeLessThan("OC:M 325/325m · 0j".length);
+    expect(statusIndicator(status, 79).tone).toBe("success");
+    status.jobs.pending = 2;
+    expect(statusIndicator(status, 79).text).toBe("OC:M 325/325·2j");
+    status.inventoryComplete = false;
+    expect(statusIndicator(status, 79).text).toBe("OC:M 325/325?·2j");
+    expect(statusIndicator(status, 43).text).toBe("OC:M 2j");
+    status.jobs.pending = 0;
+    status.jobs.failed = 1;
+    status.nativeTurns = 1;
+    expect(statusIndicator(status, 43).text).toBe("OC:N! 1j");
+    status.retryInSeconds = 12;
+    expect(statusIndicator(status, 79).text).toBe("OC:N! 325/325?·1j r12s");
+    expect(statusIndicator(status, 43).text).toBe("OC:N! 1j r12s");
+    status.retryInSeconds = undefined;
+    status.jobs.failed = 0;
+    status.nativeTurns = 0;
+    status.totalMessages = undefined;
+    status.processedMessages = undefined;
+    expect(statusIndicator(status, 79).text).toBe("OC: ready");
+    expect(statusIndicator(ready(), 64).text).toBe("OC: ready");
+    expect(statusIndicator({ ...ready(), enabled: false }, 79).text).toBe("OC: off");
+  });
+  test("reader passes the current width to the indicator", async () => {
+    let width = 120;
+    const status = ready();
+    status.totalMessages = 325;
+    status.processedMessages = 325;
+    status.inventoryComplete = true;
+    const updates: StatusIndicator[] = [];
+    const reader = createStatusReader({ location: () => "project", columns: () => width,
+      update: (indicator, raw) => { expect(raw).toBe(status); updates.push(indicator); },
+      read: async () => status });
+    await reader.refresh();
+    expect(updates.at(-1)?.text).toBe("OC:M 325/325m · 0j");
+    width = 50;
+    await reader.refresh();
+    expect(updates.at(-1)?.text).toBe("OC:M 325/325");
+    reader.dispose();
+  });
   test("shows disabled, ready, active, processing, and failed states", () => {
     const status = ready();
     expect(statusIndicator(status).text).toBe("OptChat: ready");

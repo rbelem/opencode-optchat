@@ -61,20 +61,33 @@ var SettingsRpc = Rpc.define({ id: "optchat.settings", methods: {
 }, events: {} });
 
 // src/adapters/opencode/tui-status-model.ts
-function statusIndicator(status) {
-  const indicator = baseIndicator(status);
+function statusIndicator(status, columns) {
+  const narrow = columns !== undefined && columns < 80;
+  const minimal = columns !== undefined && columns < 44;
+  const indicator = baseIndicator(status, narrow);
   if (status.totalMessages !== undefined && status.processedMessages !== undefined && status.enabled) {
     const mode = status.nativeTurns ? "N" : "M";
     const state = status.jobs.failed || status.jobs.expired ? "!" : status.lastError === "BACKGROUND_PAUSED" ? "P" : "";
     const jobs = status.jobs.pending + status.jobs.running + status.jobs.failed;
+    const unknown = status.inventoryComplete ? "" : "?";
+    if (minimal) {
+      const jobsPart = jobs > 0 ? ` ${jobs}j` : "";
+      const retryPart = status.retryInSeconds === undefined ? "" : ` r${status.retryInSeconds}s`;
+      return { text: `OC:${mode}${state}${jobsPart}${retryPart}`, tone: indicator.tone };
+    }
+    if (narrow) {
+      const jobsPart = jobs > 0 ? `\xB7${jobs}j` : "";
+      const retry = status.retryInSeconds === undefined ? "" : ` r${status.retryInSeconds}s`;
+      return { text: `OC:${mode}${state} ${status.processedMessages}/${status.totalMessages}${unknown}${jobsPart}${retry}`, tone: indicator.tone };
+    }
     const retry = status.retryInSeconds === undefined ? "" : ` \xB7 r${status.retryInSeconds}s`;
-    return { text: `OC:${mode}${state} ${status.processedMessages}/${status.totalMessages}${status.inventoryComplete ? "" : "?"}m \xB7 ${jobs}j${retry}`, tone: indicator.tone };
+    return { text: `OC:${mode}${state} ${status.processedMessages}/${status.totalMessages}${unknown}m \xB7 ${jobs}j${retry}`, tone: indicator.tone };
   }
   if (!status.enabled || status.remainingMessages === undefined)
     return indicator;
   const jobs = status.jobs.pending + status.jobs.running + status.jobs.failed;
   if (status.remainingMessages || jobs)
-    indicator.text += ` \xB7 ${status.remainingMessages} msgs left \xB7 ${jobs} jobs`;
+    indicator.text += narrow ? ` \xB7 ${status.remainingMessages} left \xB7 ${jobs}j` : ` \xB7 ${status.remainingMessages} msgs left \xB7 ${jobs} jobs`;
   return indicator;
 }
 function activityDetails(status) {
@@ -90,24 +103,25 @@ Job error: ${status.jobError ?? "none"}
 Provider retry: ${status.retryInSeconds === undefined ? "none scheduled" : `${status.retryInSeconds}s (retry ${status.retryAttempt ?? 0}/3)`}
 Counts cover retained history. New history and derived jobs can increase totals.`;
 }
-function baseIndicator(status) {
+function baseIndicator(status, narrow = false) {
+  const prefix = narrow ? "OC:" : "OptChat:";
   if (!status.enabled)
-    return { text: "OptChat: off", tone: "muted" };
+    return { text: `${prefix} off`, tone: "muted" };
   if (status.nativeTurns) {
     const preparation = status.jobs.failed ? "failed" : status.jobs.running ? `preparing ${status.jobs.running}` : status.jobs.pending && status.lastError === "BACKGROUND_PAUSED" ? "paused" : status.jobs.pending ? `queued ${status.jobs.pending}` : "";
-    return { text: `OptChat: native${preparation ? ` \xB7 ${preparation}` : ""}`, tone: "warning" };
+    return { text: `${prefix} native${preparation ? ` \xB7 ${preparation}` : ""}`, tone: "warning" };
   }
   if (status.jobs.failed || status.jobs.expired)
-    return { text: "OptChat: error", tone: "error" };
+    return { text: `${prefix} error`, tone: "error" };
   if (status.jobs.running)
-    return { text: `OptChat: processing ${status.jobs.running}`, tone: "warning" };
+    return { text: `${prefix} processing ${status.jobs.running}`, tone: "warning" };
   if (status.jobs.pending && status.lastError === "BACKGROUND_PAUSED")
-    return { text: "OptChat: paused", tone: "warning" };
+    return { text: `${prefix} paused`, tone: "warning" };
   if (status.jobs.pending)
-    return { text: `OptChat: queued ${status.jobs.pending}`, tone: "warning" };
+    return { text: `${prefix} queued ${status.jobs.pending}`, tone: "warning" };
   if (status.activeTurns)
-    return { text: "OptChat: active", tone: "success" };
-  return { text: "OptChat: ready", tone: "success" };
+    return { text: `${prefix} active`, tone: "success" };
+  return { text: `${prefix} ready`, tone: "success" };
 }
 function createStatusReader(options) {
   let disposed = false;
@@ -129,7 +143,7 @@ function createStatusReader(options) {
       try {
         const status = await options.read(location, controller.signal);
         if (!disposed && key === JSON.stringify(options.location()))
-          options.update(statusIndicator(status));
+          options.update(statusIndicator(status, options.columns?.()), status);
       } catch {
         if (!disposed && key === JSON.stringify(options.location())) {
           options.update({ text: "OptChat: unavailable", tone: "muted" });
@@ -260,17 +274,24 @@ Counts cover this database. Status does not certify summary accuracy.` });
 }
 
 // src/adapters/opencode/tui-status.ts
-import { createElement, spread } from "@opentui/solid";
+import { createElement, spread, useTerminalDimensions } from "@opentui/solid";
 import { createSignal, onCleanup, onMount } from "solid-js";
 function registerStatusBar(ctx) {
   const rpc = ctx.client.rpc(SettingsRpc);
   const cleanups = new Set;
   const render = () => {
-    const [indicator, setIndicator] = createSignal({ text: "OptChat: checking", tone: "muted" });
+    const dimensions = useTerminalDimensions();
+    const checking = { text: "OptChat: checking", tone: "muted" };
+    const [snapshot, setSnapshot] = createSignal({ indicator: checking });
+    const shown = () => {
+      const entry = snapshot();
+      return entry.status ? statusIndicator(entry.status, dimensions().width) : entry.indicator;
+    };
     const reader = createStatusReader({
       location: () => ctx.location ?? ctx.data.location.default(),
       read: async (location, signal) => await rpc.status({}, { location, signal }),
-      update: setIndicator
+      update: (indicator, status) => setSnapshot({ indicator, status }),
+      columns: () => dimensions().width
     });
     let timer;
     const cleanup = () => {
@@ -286,13 +307,16 @@ function registerStatusBar(ctx) {
     onCleanup(cleanup);
     const text = createElement("text");
     spread(text, {
+      flexShrink: 1,
+      wrapMode: "none",
+      truncate: true,
       get fg() {
         const theme = ctx.theme;
-        const tone = indicator().tone;
+        const tone = shown().tone;
         return tone === "muted" ? theme.text.muted : theme.text.feedback[tone].base;
       },
       get children() {
-        return ` ${indicator().text} `;
+        return ` ${shown().text} `;
       }
     });
     return text;
@@ -322,4 +346,4 @@ export {
   tui_default as default
 };
 
-//# debugId=510BDBA5DC14758864756E2164756E21
+//# debugId=08EBA8FB7C5E7DBC64756E2164756E21

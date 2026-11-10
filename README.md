@@ -55,6 +55,12 @@ Database and scope identifiers remain fixed in this dialog to prevent accidental
 
 The live status bar uses a compact format: `OC:N 24/160m · 33j`.
 This means 24 of 160 inventoried messages have complete original summaries, with 33 unfinished summary jobs.
+
+Below 80 terminal columns, the status bar shortens the counts format.
+The `m` unit suffix disappears. A zero job count disappears. The retry delay loses its separator.
+Below 44 terminal columns, the status bar shows only the mode, the marker, and the positive job count.
+The narrow format does not change the meaning of the counts.
+
 The adapter inventories completed history before importing its records and generating summaries.
 Tool parts from one host message count as one message.
 
@@ -83,6 +89,8 @@ Invalid responses never become clipped summaries.
 The terminal status bar shows OptChat on the home screen and in sessions.
 It reads the current Location's server status every five seconds while visible.
 The indicator does not start compaction or make model calls.
+Below 80 terminal columns, the `OptChat:` prefix becomes `OC:`.
+The indicator clips its text instead of wrapping when the footer row is full.
 
 - `off`: Memory ingestion is disabled.
 - `ready`: OptChat is enabled with no active turns or pending jobs.
