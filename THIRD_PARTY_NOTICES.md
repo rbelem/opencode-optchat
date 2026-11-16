@@ -17,17 +17,17 @@ This license does not replace licenses for dependencies, external documents, run
   The archive also includes it. The supplied document has no explicit license.
   Inclusion does not establish a separate MIT grant for the paper or its external sources.
 - [OpenCode V2 documentation](https://opencode.ai/v2/docs/build/plugins) and
-  installed `@opencode/plugin` 2.2.0 declarations were API references.
+  installed `@opencode/plugin` 2.3.0 declarations were API references.
   This package does not include their complete text or SDK implementation.
 
 ## Dependencies
 
 | Direct dependency | Version | Declared license | Distribution |
 | --- | --- | --- | --- |
-| `@opencode/plugin` | 2.2.0 | MIT | External runtime dependency |
-| `@opencode/theme` | 2.2.0 | MIT | Development only |
-| `@opentui/core` | 0.7.0 | MIT | Development only |
-| `@opentui/solid` | 0.7.0 | MIT | Development dependency and external host-provided peer |
+| `@opencode/plugin` | 2.3.0 | MIT | External runtime dependency |
+| `@opencode/theme` | 2.3.0 | MIT | Development only |
+| `@opentui/core` | 0.8.4 | MIT | Development only |
+| `@opentui/solid` | 0.8.4 | MIT | Development dependency and external host-provided peer |
 | `solid-js` | 1.9.15 | MIT | Development dependency and external host-provided peer |
 | `@types/bun` | 1.4.3 | MIT | Development only |
 | `typescript` | 7.0.2 | Apache-2.0 | Development only |
@@ -60,6 +60,9 @@ Transitive packages retain their own licenses. In particular:
   <https://blueoakcouncil.org/license/1.0.0> when their code is redistributed.
 - `json-schema` 0.4.0 offers AFL-2.1 OR BSD-3-Clause. The BSD-3-Clause option is
   available, with its upstream copyright, conditions, and disclaimer.
+- `@opentui/core-linux-x64` 0.8.4 declares `MIT AND LGPL-2.1-or-later`.
+  The prebuilt binary bundles FFmpeg under LGPL-2.1-or-later.
+  See its `LICENSE-FFMPEG` file. This package does not bundle or redistribute the binary.
 - Apache-2.0, MIT, BSD, and ISC packages have their own notice obligations.
   Preserve applicable upstream license and NOTICE files when redistributing them.
 

@@ -86,7 +86,7 @@ const memory = Plugin.define({ id: "optchat.memory", async setup(ctx) {
   }
   let activeJob: string | undefined;
   // OpenCode 2.2.0 moved stateless generation to `experimental.generate.text`. Earlier hosts expose `generate.text`.
-  // Resolve on demand so a fixture context without a generation API can still use a fake summarizer.
+  // OpenCode 2.3.0 keeps the member and marks the old alias deprecated. Resolve on demand so a fixture context without a generation API can still use a fake summarizer.
   const generateText = (input: Parameters<PluginContext["generate"]["text"]>[0], options: { signal: AbortSignal }) => (ctx.experimental?.generate ?? ctx.generate).text(input, options);
   const compactor = config.fakeSummarizer ? new FakeSummarizer() : new ModelSummarizer(async (prompt, signal) => {
     const models = await diagnostics.span("compactor.model.list", () => abortable(() => ctx.model.list({}), signal));

@@ -56,10 +56,10 @@
     "evaluate": "bun run scripts/evaluate.ts"
   },
   "dependencies": {
-    "@opencode/plugin": "2.2.0"
+    "@opencode/plugin": "2.3.0"
   },
   "peerDependencies": {
-    "@opentui/solid": ">=0.5.17",
+    "@opentui/solid": ">=0.8.4",
     "solid-js": ">=1.9.0"
   },
   "peerDependenciesMeta": {
@@ -67,9 +67,9 @@
     "solid-js": { "optional": true }
   },
   "devDependencies": {
-    "@opencode/theme": "2.2.0",
-    "@opentui/core": "0.7.0",
-    "@opentui/solid": "0.7.0",
+    "@opencode/theme": "2.3.0",
+    "@opentui/core": "0.8.4",
+    "@opentui/solid": "0.8.4",
     "@types/bun": "1.4.3",
     "solid-js": "1.9.15",
     "typescript": "7.0.2"

@@ -1,13 +1,14 @@
 {
   "reviewDate": "2026-10-09",
-  "lockfileSha256": "0abc85778f6ca611a0db4be0e46d7844d24c539e2f363a9fd87199134cd0428a",
+  "lockfileSha256": "b8e44dd43e2204deed2a29f15be197987a6ac270d75193534ed560d5b9f3e807",
   "scope": "Installed package metadata and root notice files. The review excludes uninstalled platform-specific artifacts. This inventory is not a legal certification.",
   "packageInstances": 424,
   "licenseCounts": {
     "Apache-2.0": 72,
-    "MIT": 211,
+    "MIT": 210,
     "ISC": 85,
     "BlueOak-1.0.0": 45,
+    "MIT AND LGPL-2.1-or-later": 1,
     "BSD-3-Clause": 2,
     "CC-BY-4.0": 1,
     "BSD-2-Clause": 4,
@@ -688,7 +689,7 @@
     },
     {
       "name": "@effect/opentelemetry",
-      "version": "4.0.1",
+      "version": "4.1.0",
       "path": "node_modules/@effect/opentelemetry",
       "declaredLicense": "MIT",
       "notices": [
@@ -700,7 +701,7 @@
     },
     {
       "name": "@effect/platform-node",
-      "version": "4.0.1",
+      "version": "4.1.0",
       "path": "node_modules/@effect/platform-node",
       "declaredLicense": "MIT",
       "notices": [
@@ -712,7 +713,7 @@
     },
     {
       "name": "@effect/platform-node-shared",
-      "version": "4.0.1",
+      "version": "4.1.0",
       "path": "node_modules/@effect/platform-node-shared",
       "declaredLicense": "MIT",
       "notices": [
@@ -1302,49 +1303,49 @@
     },
     {
       "name": "@opencode/ai",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "path": "node_modules/@opencode/ai",
       "declaredLicense": "MIT",
       "notices": []
     },
     {
       "name": "@opencode/client",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "path": "node_modules/@opencode/client",
       "declaredLicense": "MIT",
       "notices": []
     },
     {
       "name": "@opencode/plugin",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "path": "node_modules/@opencode/plugin",
       "declaredLicense": "MIT",
       "notices": []
     },
     {
       "name": "@opencode/protocol",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "path": "node_modules/@opencode/protocol",
       "declaredLicense": "MIT",
       "notices": []
     },
     {
       "name": "@opencode/schema",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "path": "node_modules/@opencode/schema",
       "declaredLicense": "MIT",
       "notices": []
     },
     {
       "name": "@opencode/theme",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "path": "node_modules/@opencode/theme",
       "declaredLicense": "MIT",
       "notices": []
     },
     {
       "name": "@opencode/util",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "path": "node_modules/@opencode/util",
       "declaredLicense": "MIT",
       "notices": []
@@ -1555,7 +1556,7 @@
     },
     {
       "name": "@opentui/core",
-      "version": "0.7.0",
+      "version": "0.8.4",
       "path": "node_modules/@opentui/core",
       "declaredLicense": "MIT",
       "notices": [
@@ -1567,13 +1568,17 @@
     },
     {
       "name": "@opentui/core-linux-x64",
-      "version": "0.7.0",
+      "version": "0.8.4",
       "path": "node_modules/@opentui/core-linux-x64",
-      "declaredLicense": "MIT",
+      "declaredLicense": "MIT AND LGPL-2.1-or-later",
       "notices": [
         {
           "file": "LICENSE",
           "sha256": "d9c397a5dc5ac77a2a08fc967ea06a65317a4b5b8de48f6f732ffcb21737e3d2"
+        },
+        {
+          "file": "LICENSE-FFMPEG",
+          "sha256": "246041b6ecf9bc32d718a62c57877c78b5eb397b6467e74ed7ae2626ab189c30"
         },
         {
           "file": "LICENSE-GHOSTTY",
@@ -1594,6 +1599,10 @@
         {
           "file": "LICENSE-WUFFS",
           "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        },
+        {
+          "file": "LICENSE-ZLIB",
+          "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
         }
       ]
     },
@@ -1631,7 +1640,7 @@
     },
     {
       "name": "@opentui/solid",
-      "version": "0.7.0",
+      "version": "0.8.4",
       "path": "node_modules/@opentui/solid",
       "declaredLicense": "MIT",
       "notices": [
@@ -2073,7 +2082,7 @@
     },
     {
       "name": "babel-preset-solid",
-      "version": "1.9.12",
+      "version": "1.9.16",
       "path": "node_modules/babel-preset-solid",
       "declaredLicense": "MIT",
       "notices": [
@@ -2526,7 +2535,7 @@
     },
     {
       "name": "effect",
-      "version": "4.0.1",
+      "version": "4.1.0",
       "path": "node_modules/effect",
       "declaredLicense": "MIT",
       "notices": [
@@ -4771,7 +4780,7 @@
     },
     {
       "name": "undici",
-      "version": "8.11.2",
+      "version": "8.12.4",
       "path": "node_modules/undici",
       "declaredLicense": "MIT",
       "notices": [

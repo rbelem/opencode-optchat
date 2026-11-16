@@ -136,10 +136,21 @@ try {
   await ready();
   const hostVersion = (await api("GET", "/api/info")).version as string;
   // The 2.1.x series moved provider retries inside the generate request. Later series keep that behavior.
-  const hostRetriesProviderCalls = /^2\.(?:1|2)\./.test(hostVersion);
+  const hostRetriesProviderCalls = /^2\.(?:1|2|3)\./.test(hostVersion);
   const create = () => api("POST", "/api/session", { location: { directory: join(root, "project") }, model: { providerID: "fixture", id: "fixture" }, permissions: [{ action: "*", resource: "*", effect: "allow" }] });
    const a = await create();
-   const settingsCall = async (method: string, input: unknown = {}) => (await api("POST", `/api/rpc/optchat.settings/${method}?location%5Bdirectory%5D=${encodeURIComponent(join(root, "project"))}`, { input })).output;
+   // The 2.3.x host answers /api/info before plugins settle. Retry only while the RPC is unavailable.
+   const settingsCall = async (method: string, input: unknown = {}) => {
+     const path = `/api/rpc/optchat.settings/${method}?location%5Bdirectory%5D=${encodeURIComponent(join(root, "project"))}`;
+     const deadline = Date.now() + 45000;
+     for (;;) {
+       const res = await fetch(url + path, { method: "POST", headers: { "content-type": "application/json", authorization }, body: JSON.stringify({ input }) });
+       if (res.ok) { const result = await res.json() as any; return (result.data ?? result).output; }
+       const text = await res.clone().text();
+       if (res.status === 400 && text.includes("rpc.unavailable") && Date.now() < deadline) { await Bun.sleep(100); continue; }
+       assert(false, `POST ${path}: ${res.status} ${text}`);
+     }
+   };
    if (managedSettings) {
      const settings = await settingsCall("read");
      assert.equal(settings.enabled, false); assert.equal(await Bun.file(settings.database).exists(), false);

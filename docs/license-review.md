@@ -44,7 +44,7 @@ Its inclusion does not relicense the cited Gist or other external sources.
 
 ### OpenCode
 
-V2 documentation and installed 2.2.0 declarations served as API references.
+V2 documentation and installed 2.3.0 declarations served as API references.
 The project does not vendor the SDK implementation.
 Generated project declarations can reference external SDK types.
 
@@ -57,23 +57,24 @@ The implementation work used the reference sources.
 
 ## Dependencies
 
-`docs/dependency-licenses.json` records 428 installed package instances, including repeated installations and versions.
+`docs/dependency-licenses.json` records 424 installed package instances, including repeated installations and versions.
 This count does not represent distinct package names or all platform-specific lockfile artifacts.
 The review did not inspect uninstalled platform packages.
 
 | Declaration | Installed instances |
 | --- | ---: |
-| MIT | 213 |
-| ISC | 86 |
+| MIT | 210 |
+| ISC | 85 |
 | Apache-2.0 | 72 |
-| BlueOak-1.0.0 | 46 |
+| BlueOak-1.0.0 | 45 |
 | BSD-2-Clause | 4 |
+| CC-BY-4.0 | 1 |
 | BSD-3-Clause | 2 |
 | AFL-2.1 OR BSD-3-Clause | 1 |
 | CC-BY-3.0 | 1 |
-| CC-BY-4.0 | 1 |
 | CC0-1.0 | 1 |
 | 0BSD | 1 |
+| MIT AND LGPL-2.1-or-later | 1 |
 
 The direct dependencies declare MIT, except `typescript`, which declares Apache-2.0.
 Each inspected package instance declares a license.
@@ -92,6 +93,9 @@ Specific findings:
   Separate redistribution requires attribution, license information, and an indication of changes.
 - `json-schema` 0.4.0 offers AFL-2.1 OR BSD-3-Clause.
   A distributor can choose the BSD-3-Clause option.
+- `@opentui/core-linux-x64` 0.8.4 declares `MIT AND LGPL-2.1-or-later`.
+  The prebuilt binary bundles FFmpeg under LGPL-2.1-or-later.
+  The package is a development-only platform peer. The distributed bundles exclude it.
 - Apache-2.0 and other permissive licenses remain separate.
   Compatible use can still require copyright, license, and NOTICE information.
   See `THIRD_PARTY_NOTICES.md` and the upstream files.

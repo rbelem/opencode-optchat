@@ -1761,9 +1761,9 @@ function sameDirectory(left, right) {
 }
 
 // src/adapters/opencode/host-version.ts
-var supportedHost = /^2\.(?:0|1|2)\.\d+$/;
+var supportedHost = /^2\.(?:0|1|2|3)\.\d+$/;
 function insistSupportedHost(version) {
-  insist(supportedHost.test(version), "UNSUPPORTED_HOST", "OptChat supports OpenCode 2.0.x, 2.1.x, and 2.2.x only");
+  insist(supportedHost.test(version), "UNSUPPORTED_HOST", "OptChat supports OpenCode 2.0.x, 2.1.x, 2.2.x, and 2.3.x only");
 }
 
 // src/adapters/opencode/adoption.ts
@@ -3017,4 +3017,4 @@ export {
   plugin_default as default
 };
 
-//# debugId=B1C644B58D85168B64756E2164756E21
+//# debugId=BE3BD82EBA11A23564756E2164756E21
