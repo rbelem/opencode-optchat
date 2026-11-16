@@ -463,7 +463,9 @@ try {
     const rows = (await Bun.file(dbPath + ".diagnostics.ndjson").text()).trim().split("\n").flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } }).filter(row => row.phase === "background.recovery");
     return rows.filter(row => row.event === "phase.start").length <= rows.filter(row => row.event === "phase.end").length;
   }, "preparation is idle before the oversized turn");
-  await api("POST", `/api/session/${oversized.id}/prompt`, { text: "OVERSIZED_ACTIVE_SENTINEL " + "x".repeat(160000) });
+  // The character-class token estimate counts a dense run near two characters per token.
+  // 300000 repetitions exceed the 120832 token budget for this fixture model.
+  await api("POST", `/api/session/${oversized.id}/prompt`, { text: "OVERSIZED_ACTIVE_SENTINEL " + "x".repeat(300000) });
   await until(async () => ["failed", "interrupted"].includes((await api("GET", `/api/session/${oversized.id}`)).outcome), "oversized active request stops explicitly");
   assert(!requests.slice(beforeOversized).some(r => r.tools && r.messages.some((m: any) => m.role === "user" && JSON.stringify(m.content).includes("OVERSIZED_ACTIVE_SENTINEL"))), "No oversized primary request reaches the provider");
   const deniedAgent = await create();
