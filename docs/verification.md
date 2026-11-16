@@ -873,3 +873,77 @@ The packed package passed its public export, TypeScript consumer, and private ho
 The deterministic suite passed 131 tests with 12,183 assertions.
 The TypeScript and documentation checks passed.
 The TUI dialog test did not run. Its terminal fixture requires macOS, and the check host is Linux.
+
+
+## OpenCode 2.3 host support
+
+The adapter rejected the OpenCode 2.3 host with `UNSUPPORTED_HOST`.
+The host version check allowed only the 2.0.x, 2.1.x, and 2.2.x series.
+
+The plugin API comparison between `@opencode/plugin` 2.2.0 and 2.3.0 showed no removed hook.
+No removed consumed event name appeared in the comparison.
+The TUI plugin API is unchanged.
+The plugin RPC surface is unchanged.
+
+The stateless generation member is now typed `ExperimentalGenerateApi`.
+The old `GenerateApi` alias remains as a deprecated alias.
+The signature of `ctx.experimental.generate.text` is unchanged.
+The adapter keeps `ctx.generate.text` as the fallback for a 2.0.x or 2.1.x host.
+
+The `session.wait` and `session.instructions` calls now come from the experimental session API.
+The consumed functions are the same functions.
+`SessionRequestMessage` gained an optional `metadata` field.
+The adapter does not read it.
+
+The new `experimental.model.resolve`, `experimental.idle`, and `fork` hooks are additive.
+The adapter does not register them.
+
+The tool context gained a readable `signal` for cooperative stop.
+The adapter does not read it.
+
+The client events gained `artifact.updated` and `session.step.first-token`.
+The `session.usage.recorded` event gained the `generate` source.
+Event location payloads gained an optional `workspaceID`.
+The adapter does not consume these changes.
+
+Every consumed event name still exists in the 2.3.0 host.
+The `session.message.content.updated` event is not in the client subscribe union in either version.
+The schema keeps the event in both versions.
+The adapter checks this event name at runtime without a typed filter.
+
+The 2.3.x host answers `/api/info` before plugins settle.
+The settings integration called the settings RPC before `optchat.settings` was registered.
+The host answered HTTP 400 with `rpc.unavailable`.
+The integration now retries the settings RPC only while the host reports `rpc.unavailable`.
+Other RPC failures still fail fast.
+
+The 2.3.x host keeps the provider retries inside the generate request.
+The integration selects the host retry path for 2.1.x and newer hosts.
+
+The oversized-turn integration check used a 160000-character user prompt.
+That size exceeded the budget only under the old byte-based token estimate.
+The character-class estimate counts a dense run near two characters per token.
+The request then fit the fixture budget and reached the provider.
+The fixture sentinel increased to 300000 repetitions to exceed the budget again.
+This sizing fix is independent of the host version.
+
+The adapter now accepts the 2.0.x, 2.1.x, 2.2.x, and 2.3.x host versions.
+It rejects every other host version before it creates a database.
+
+The pinned `@opencode/plugin` and `@opencode/theme` dependencies moved to 2.3.0.
+The terminal peers `@opentui/core` and `@opentui/solid` moved to 0.8.4.
+The 0.8.4 version matches the 2.3.0 peer range.
+
+The platform prebuilt `@opentui/core-linux-x64` declares `MIT AND LGPL-2.1-or-later`.
+The license review documents this declaration.
+The package excludes the binary.
+
+The private host integration passed its lifecycle groups on OpenCode 2.3.0.
+Two consecutive runs passed with 140 and 131 loopback model requests.
+The packed package passed its public export, TypeScript consumer, and private host settings integration with 97 loopback requests.
+The managed settings integration passed with 97 loopback requests.
+
+The deterministic suite passed 137 tests with 12,210 assertions.
+The documentation and TypeScript checks passed.
+The TUI dialog test did not run.
+Its terminal fixture requires macOS, and the check host is Linux.
