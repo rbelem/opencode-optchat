@@ -3,13 +3,16 @@
 ## Tested environment
 
 - macOS arm64.
-- Linux x64 for the OpenCode 2.1.1, 2.2.0, and 2.3.0 host checks.
+- Linux x64 for the OpenCode 2.1.1, 2.2.0, 2.3.0, and 0.0.0-native-25 host checks.
 - Bun 1.4.2, 1.4.3, and 1.4.4.
 - OpenCode 2.0.x, 2.1.x, 2.2.x, and 2.3.x. The tested patches are 2.0.26, 2.1.1, 2.2.0, and 2.3.0.
+- OpenCode 0.0.0-native. The tested build is 0.0.0-native-25.
 - Official V2 plugin API and the exact pinned `@opencode/plugin` dependency.
 - Private OpenCode service processes with a local OpenAI-compatible model fixture.
 
 The adapter rejects other OpenCode versions explicitly.
+The native build passed the private host lifecycle integration on 0.0.0-native-25.
+One settings recovery assertion fails on 2.3.2 and on the native build alike. See verification.md.
 The tests do not establish support for other operating systems or providers.
 
 ## Support matrix
@@ -44,7 +47,7 @@ The tests do not establish support for other operating systems or providers.
 | Automatic preparation continuation | Timer resumes a released job without another native prompt or event. Failed jobs require confirmed retry |
 | Cold existing-session input | Native mode preserves own history while summaries remain unavailable. Admission does not generate summaries |
 | Compactor leaf and parent batches | Checked item IDs, bounded input, independent size limits, cancellation, retention fences, and actual host requests |
-| Temporary provider outages | Bounded adapter retries and backoff on a 2.0.x host. The 2.1.x, 2.2.x, and 2.3.x hosts retry provider calls inside the generate request. Actual HTTP 503 recovery passes without manual retry |
+| Temporary provider outages | Bounded adapter retries and backoff on a 2.0.x host. The 2.1.x, 2.2.x, 2.3.x, and 0.0.0-native hosts retry provider calls inside the generate request. Actual HTTP 503 recovery passes without manual retry |
 | Invalid cached summaries | Derived-memory reconstruction retains originals and unaffected publication order |
 
 Support applies only to the checked V2 boundaries.

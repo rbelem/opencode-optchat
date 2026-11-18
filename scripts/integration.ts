@@ -135,8 +135,8 @@ const publications = () => (db!.query("SELECT value FROM entities WHERE bucket='
 try {
   await ready();
   const hostVersion = (await api("GET", "/api/info")).version as string;
-  // The 2.1.x series moved provider retries inside the generate request. Later series keep that behavior.
-  const hostRetriesProviderCalls = /^2\.(?:1|2|3)\./.test(hostVersion);
+  // The 2.1.x series moved provider retries inside the generate request. Later 2.x series and the native build keep that behavior.
+  const hostRetriesProviderCalls = /^2\.(?:1|2|3)\.|^0\.0\.0-native-/.test(hostVersion);
   const create = () => api("POST", "/api/session", { location: { directory: join(root, "project") }, model: { providerID: "fixture", id: "fixture" }, permissions: [{ action: "*", resource: "*", effect: "allow" }] });
    const a = await create();
    // The 2.3.x host answers /api/info before plugins settle. Retry only while the RPC is unavailable.

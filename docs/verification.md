@@ -947,3 +947,43 @@ The deterministic suite passed 137 tests with 12,210 assertions.
 The documentation and TypeScript checks passed.
 The TUI dialog test did not run.
 Its terminal fixture requires macOS, and the check host is Linux.
+
+## Native host support
+
+The native build reports its version as `0.0.0-native-<build>`.
+The adapter rejected the build with `UNSUPPORTED_HOST`.
+The host version check allowed only the 2.0.x, 2.1.x, 2.2.x, and 2.3.x series.
+
+The `opencode-native` binary implements the same V2 API surface.
+Its `serve` command accepts the same hostname and port flags.
+The `/api/info` endpoint reports the native version string.
+The native build keeps the provider retries inside the generate request.
+It behaves like the 2.1.x and newer hosts.
+The integration selects the host retry path for the native channel.
+
+The adapter now accepts `0.0.0-native-<build>` host versions.
+It rejects every other host version before it creates a database.
+
+The private host integration passed all lifecycle groups on 0.0.0-native-25.
+The run used the loopback model fixture and a private service.
+It retained root sessions, forks, children, and native compaction across a forced restart.
+The pinned host case used `/tmp/opencode/optchat-integration-4iPuiC` with 127 loopback model requests.
+
+The packed settings recovery group failed one assertion on the native build.
+The missing diagnostics row is `readiness.failed_job` with `errorCode` `SUMMARY_SIZE`.
+
+The same assertion fails identically on the OpenCode 2.3.2 host.
+The failure is not specific to the native build and not caused by the host version change.
+
+The integration seeds a failed job with `SELECT id FROM jobs WHERE status='pending' LIMIT 1`.
+The query has no `ORDER BY` clause.
+The seeded job may not be the job that blocks the current scope.
+The adapter reports only jobs that block a session in the readiness check.
+
+The exact cause of the missing diagnostics row is not yet established.
+The assertion needs a seeded blocking job or further investigation before the group can pass.
+
+The deterministic suite passed 137 tests with 12,214 assertions.
+The documentation and TypeScript checks passed.
+The host integration passed on Linux x64 with Bun 1.4.4.
+The real-model evaluation did not run for the native build.
